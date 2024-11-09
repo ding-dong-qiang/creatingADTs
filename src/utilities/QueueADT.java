@@ -8,6 +8,14 @@ package utilities;
 public interface QueueADT<T>
 {
 	/**
+	 * Constructor method to create a new queue. Precondition: None. Postcondition:
+	 * A stack object is created and with a specified size.
+	 *
+	 * @param : the size of the new queue.
+	 */
+	public void create( int size );
+
+	/**
 	 * Adds an element to the end of the queue.
 	 *
 	 * @param element the element to be added to the queue

@@ -8,6 +8,14 @@ package utilities;
 public interface StackADT<T>
 {
 	/**
+	 * Constructor method to create a new stack. Precondition: None. Postcondition:
+	 * A stack object is created and with a specified size.
+	 *
+	 * @param : the size of the new stack.
+	 */
+	public void create( int size );
+
+	/**
 	 * Pushes an element onto the top of the stack.
 	 *
 	 * @param element the element to be added to the stack
