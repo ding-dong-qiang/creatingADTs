@@ -1,6 +1,10 @@
 package unitTests;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.NoSuchElementException;
 
@@ -9,15 +13,13 @@ import org.junit.Before;
 import org.junit.Test;
 
 import exceptions.EmptyQueueException;
-import utilities.Iterator;
 import implementations.MyQueue;
+import utilities.Iterator;
 
 /**
  * @author kitty, maryam
- * @version 3.2 Aug. 28, 2024  
- * Class Description:
- * Test for DLL-based implementation of the QueueADT defined in the CPRG 304
- * Assignment 2.
+ * @version 3.2 Aug. 28, 2024 Class Description: Test for DLL-based
+ *          implementation of the QueueADT defined in the CPRG 304 Assignment 2.
  */
 
 public class QueueTest
@@ -29,9 +31,10 @@ public class QueueTest
 	private Integer three;
 	private Integer four;
 	private Integer five;
-	
+
 	/**
 	 * Initializes a MyQueue instance and five Integer instances before each test.
+	 * 
 	 * @throws java.lang.Exception
 	 */
 	@Before
@@ -47,6 +50,7 @@ public class QueueTest
 
 	/**
 	 * Cleans up instances used after each test.
+	 * 
 	 * @throws java.lang.Exception
 	 */
 	@After
@@ -61,9 +65,7 @@ public class QueueTest
 	}
 
 	/**
-	 * Test method for 
-	 * {@link implementations.MyQueue#MyQueue()}
-	 * to create a queue.
+	 * Test method for {@link implementations.MyQueue#MyQueue()} to create a queue.
 	 */
 	@Test
 	public void testConstructor()
@@ -74,9 +76,8 @@ public class QueueTest
 	}
 
 	/**
-	 * Test method for 
-	 * {@link implementations.MyQueue#dequeueAll()}
-	 * to clear the queue.
+	 * Test method for {@link implementations.MyQueue#dequeueAll()} to clear the
+	 * queue.
 	 */
 	@Test
 	public void testDequeueAll_Size()
@@ -84,14 +85,13 @@ public class QueueTest
 		queue.enqueue( one );
 		queue.enqueue( two );
 		queue.dequeueAll();
-		
+
 		assertEquals( "Failed to clear.", 0, queue.size() );
 	}
 
 	/**
-	 * Test method for
-	 * {@link implementations.MyQueue#equals(utilities.QueueADT)}
-	 * to return true when two queues are equal.
+	 * Test method for {@link implementations.MyQueue#equals(utilities.QueueADT)} to
+	 * return true when two queues are equal.
 	 */
 	@Test
 	public void testEquals_True()
@@ -111,10 +111,10 @@ public class QueueTest
 	}
 
 	/**
-	 * Test method for
-	 * {@link implementations.MyQueue#equals(utilities.QueueADT)}
-	 * to return false when two queues are not equal.
-	 * @throws EmptyQueueException 
+	 * Test method for {@link implementations.MyQueue#equals(utilities.QueueADT)} to
+	 * return false when two queues are not equal.
+	 * 
+	 * @throws EmptyQueueException
 	 */
 	@Test
 	public void testEquals_False() throws EmptyQueueException
@@ -132,7 +132,6 @@ public class QueueTest
 		boolean actual = queue.equals( queue2 );
 		assertEquals( "Failed to return false.", expected, actual );
 
-		
 		queue2.dequeue();
 		actual = queue.equals( queue2 );
 		assertEquals( "Failed to return false", expected, actual );
@@ -140,9 +139,8 @@ public class QueueTest
 	}
 
 	/**
-	 * Test method for 
-	 * {@link implementations.MyQueue#isEmpty()}
-	 * to return true when queue is empty.
+	 * Test method for {@link implementations.MyQueue#isEmpty()} to return true when
+	 * queue is empty.
 	 */
 	@Test
 	public void testIsEmpty_True()
@@ -154,9 +152,8 @@ public class QueueTest
 	}
 
 	/**
-	 * Test method for 
-	 * {@link implementations.MyQueue#isEmpty()}
-	 * to return false when the queue is not empty.
+	 * Test method for {@link implementations.MyQueue#isEmpty()} to return false
+	 * when the queue is not empty.
 	 */
 	@Test
 	public void testIsEmpty_False()
@@ -170,9 +167,8 @@ public class QueueTest
 	}
 
 	/**
-	 * Test method for 
-	 * {@link implementations.MyQueue#iterator()} 
-	 * to return and iterator to iterate over the items of the queue from head to tail.
+	 * Test method for {@link implementations.MyQueue#iterator()} to return and
+	 * iterator to iterate over the items of the queue from head to tail.
 	 */
 	@Test
 	public void testIterator()
@@ -190,54 +186,53 @@ public class QueueTest
 		queue.enqueue( five );
 
 		Iterator<Integer> it = queue.iterator();
-		
-		assertTrue(it.hasNext());
-		
+
+		assertTrue( it.hasNext() );
+
 		int actual1 = it.next();
 		int actual2 = it.next();
 		int actual3 = it.next();
 		int actual4 = it.next();
 		int actual5 = it.next();
 
-		assertFalse(it.hasNext());
-		
+		assertFalse( it.hasNext() );
+
 		assertEquals( "Failed to return item at position.", expected1, actual1 );
 		assertEquals( "Failed to return item at position.", expected2, actual2 );
 		assertEquals( "Failed to return item at position.", expected3, actual3 );
 		assertEquals( "Failed to return item at position.", expected4, actual4 );
 		assertEquals( "Failed to return item at position.", expected5, actual5 );
-		
+
 	}
-	
+
 	/**
-	 * Test method for 
-	 * {@link implementations.MyQueue#iterator()} 
-	 * to return and iterator when the queue is empty.
+	 * Test method for {@link implementations.MyQueue#iterator()} to return and
+	 * iterator when the queue is empty.
 	 */
 	@Test
 	public void testIterator_EmptyQ()
 	{
 		Iterator<Integer> it = queue.iterator();
-		
-		assertFalse(it.hasNext());
-		
+
+		assertFalse( it.hasNext() );
+
 		try
 		{
 			it.next();
-			fail("Failed to throw NoSuchElementException.");
+			fail( "Failed to throw NoSuchElementException." );
 		}
-		catch(NoSuchElementException e)
+		catch( NoSuchElementException e )
 		{
-			assertTrue(true);
+			assertTrue( true );
 		}
 
 	}
 
 	/**
-	 * Test method for 
-	 * {@link implementations.MyQueue#peek()}
-	 * to return the first item in the queue.
-	 * @throws EmptyQueueException 
+	 * Test method for {@link implementations.MyQueue#peek()} to return the first
+	 * item in the queue.
+	 * 
+	 * @throws EmptyQueueException
 	 */
 	@Test
 	public void testPeek_First() throws EmptyQueueException
@@ -256,9 +251,8 @@ public class QueueTest
 	}
 
 	/**
-	 * Test method for 
-	 * {@link implementations.MyQueue#peek()}
-	 * to throw EmptyQueueException when queue is empty.
+	 * Test method for {@link implementations.MyQueue#peek()} to throw
+	 * EmptyQueueException when queue is empty.
 	 */
 	@Test
 	public void testPeek_Empty()
@@ -276,9 +270,8 @@ public class QueueTest
 	}
 
 	/**
-	 * Test method for 
-	 * {@link implementations.MyQueue#dequeue()}
-	 * to remove the first item in the queue.
+	 * Test method for {@link implementations.MyQueue#dequeue()} to remove the first
+	 * item in the queue.
 	 * 
 	 * @throws EmptyQueueException
 	 */
@@ -296,18 +289,17 @@ public class QueueTest
 		int actual1 = queue.dequeue();
 		assertEquals( "Failed to remove the item.", expected1, actual1 );
 		assertEquals( "Failed to update size.", 4, queue.size() );
-		
+
 		expected1 = 222;
 		actual1 = queue.peek();
-		
+
 		assertEquals( "Failed to remove the item.", expected1, actual1 );
-		
+
 	}
 
 	/**
-	 * Test method for
-	 * {@link implementations.MyQueue#dequeue()}
-	 * to throw EmptyQueueException when removing from an empty queue.
+	 * Test method for {@link implementations.MyQueue#dequeue()} to throw
+	 * EmptyQueueException when removing from an empty queue.
 	 */
 	@Test
 	public void testDequeue_Empty()
@@ -325,9 +317,9 @@ public class QueueTest
 	}
 
 	/**
-	 * Test method for
-	 * {@link implementations.MyQueue#enqueue(java.lang.Object)}.
-	 * to enqueue multiple items to the queue.
+	 * Test method for {@link implementations.MyQueue#enqueue(java.lang.Object)}. to
+	 * enqueue multiple items to the queue.
+	 * 
 	 * @throws EmptyQueueException
 	 */
 	@Test
@@ -360,9 +352,8 @@ public class QueueTest
 	}
 
 	/**
-	 * Test method for
-	 * {@link implementations.MyQueue#enqueue(java.lang.Object)}
-	 * to throw a NullPointerException when a null is passed.
+	 * Test method for {@link implementations.MyQueue#enqueue(java.lang.Object)} to
+	 * throw a NullPointerException when a null is passed.
 	 */
 	@Test
 	public void testEnqueue_NullPointerException()
@@ -384,9 +375,8 @@ public class QueueTest
 	}
 
 	/**
-	 * Test method for 
-	 * {@link utilities.QueueADT#size()}
-	 * to return the size of the queue when the queue has one item.
+	 * Test method for {@link utilities.QueueADT#size()} to return the size of the
+	 * queue when the queue has one item.
 	 */
 	@Test
 	public void testSize_AddOneToEmpty()
@@ -394,11 +384,10 @@ public class QueueTest
 		queue.enqueue( one );
 		assertEquals( "Failed to update queue size.", 1, queue.size() );
 	}
-	
+
 	/**
-	 * Test method for 
-	 * {@link utilities.QueueADT#size()}
-	 * to return the size of the queue when the queue has multiple items.
+	 * Test method for {@link utilities.QueueADT#size()} to return the size of the
+	 * queue when the queue has multiple items.
 	 */
 	@Test
 	public void testSize_AddMany()
@@ -412,9 +401,8 @@ public class QueueTest
 	}
 
 	/**
-	 * Test method for 
-	 * {@link implementations.MyQueue#toArray()}
-	 * to return an Object array storing all items in the queue from head to first.
+	 * Test method for {@link implementations.MyQueue#toArray()} to return an Object
+	 * array storing all items in the queue from head to first.
 	 */
 	@Test
 	public void testToArray()
@@ -424,7 +412,7 @@ public class QueueTest
 		queue.enqueue( three );
 
 		Integer[] expectedArray = new Integer[3];
-		
+
 		expectedArray[0] = one;
 		expectedArray[1] = two;
 		expectedArray[2] = three;
@@ -434,9 +422,9 @@ public class QueueTest
 	}
 
 	/**
-	 * Test method for 
-	 * {@link implementations.MyQueue#toArray(E[])}
-	 * to return an array storing all items in the queue from head to first when the array passed has sufficient length.
+	 * Test method for {@link implementations.MyQueue#toArray(E[])} to return an
+	 * array storing all items in the queue from head to first when the array passed
+	 * has sufficient length.
 	 */
 	@Test
 	public void testToArrayEArray_SufficientArray()
@@ -444,22 +432,23 @@ public class QueueTest
 		queue.enqueue( one );
 		queue.enqueue( two );
 		queue.enqueue( three );
-	
+
 		Object[] expectedArray = new Integer[3];
-		
+
 		expectedArray[0] = one;
 		expectedArray[1] = two;
 		expectedArray[2] = three;
-		
-		Integer[] actualArray = new Integer[3];;
+
+		Integer[] actualArray = new Integer[3];
+		;
 		actualArray = queue.toArray( actualArray );
 		assertArrayEquals( "Failed to convert queue to array.", expectedArray, actualArray );
 	}
-	
+
 	/**
-	 * Test method for 
-	 * {@link implementations.MyQueue#toArray(E[])}
-	 * to return an array storing all items in the queue from head to first when the array passed has insufficient length.
+	 * Test method for {@link implementations.MyQueue#toArray(E[])} to return an
+	 * array storing all items in the queue from head to first when the array passed
+	 * has insufficient length.
 	 */
 	@Test
 	public void testToArrayEArray_InsufficientArray()
@@ -467,152 +456,150 @@ public class QueueTest
 		queue.enqueue( one );
 		queue.enqueue( two );
 		queue.enqueue( three );
-	
+
 		Object[] expectedArray = new Integer[3];
-		
+
 		expectedArray[0] = one;
 		expectedArray[1] = two;
 		expectedArray[2] = three;
-		
-		Integer[] actualArray = new Integer[2];;
+
+		Integer[] actualArray = new Integer[2];
+		;
 		actualArray = queue.toArray( actualArray );
 		assertArrayEquals( "Failed to convert queue to array.", expectedArray, actualArray );
 	}
-	
+
 	/**
-	 * Test method for 
-	 * {@link implementations.MyQueue#toArray(E[])}
-	 * to throw NullPointerException when a null is passed.
-	 */@Test
+	 * Test method for {@link implementations.MyQueue#toArray(E[])} to throw
+	 * NullPointerException when a null is passed.
+	 */
+	@Test
 	public void testToArrayNullArray()
 	{
 		Integer[] returnArray = null;
-		try 
+		try
 		{
-			returnArray = queue.toArray(returnArray);
-			fail("Failed to throw NullPointerException.");
-		} 
-		catch (NullPointerException e) 
+			returnArray = queue.toArray( returnArray );
+			fail( "Failed to throw NullPointerException." );
+		}
+		catch( NullPointerException e )
 		{
-			assertTrue(true);
+			assertTrue( true );
 		}
 	}
-	 
-	 /**
-	  * Test method for 
-	  * {@link implementations.MyQueue#isFull()}
-	  * to return false.
-	  */@Test
-		public void testIsFull()
+
+	/**
+	 * Test method for {@link implementations.MyQueue#isFull()} to return false.
+	 */
+	@Test
+	public void testIsFull()
+	{
+		assertFalse( queue.isFull() );
+
+		for( int i = 0; i < 500; i++ )
 		{
-			assertFalse(queue.isFull());
-			
-			for( int i = 0; i < 500; i++ )
-			{
-				queue.enqueue( i );
-			}
-	
-			assertFalse(queue.isFull());
-		} 
-	
-	 /**
-	  * Test method for 
-	  * {@link implementations.MyQueue#contains(java.lang.Object)}
-	  * to return true when item is found.
-	  */@Test
-		public void testContains_Found()
+			queue.enqueue( i );
+		}
+
+		assertFalse( queue.isFull() );
+	}
+
+	/**
+	 * Test method for {@link implementations.MyQueue#contains(java.lang.Object)} to
+	 * return true when item is found.
+	 */
+	@Test
+	public void testContains_Found()
+	{
+		queue.enqueue( one );
+		queue.enqueue( two );
+		queue.enqueue( three );
+
+		assertTrue( queue.contains( one ) );
+		assertTrue( queue.contains( two ) );
+		assertTrue( queue.contains( three ) );
+
+	}
+
+	/**
+	 * Test method for {@link implementations.MyQueue#contains(java.lang.Object)} to
+	 * return true when item is not found.
+	 */
+	@Test
+	public void testContains_NotFound()
+	{
+		queue.enqueue( one );
+		queue.enqueue( two );
+		queue.enqueue( three );
+
+		assertFalse( queue.contains( four ) );
+		assertFalse( queue.contains( five ) );
+
+	}
+
+	/**
+	 * Test method for {@link implementations.MyQueue#contains(java.lang.Object)} to
+	 * throw NullPointerException when null is passed.
+	 */
+	@Test
+	public void testContains_NullPointerException()
+	{
+		try
 		{
-		  	queue.enqueue( one );
-			queue.enqueue( two );
-			queue.enqueue( three );
-			
-			assertTrue( queue.contains( one ) );
-			assertTrue( queue.contains( two ) );
-			assertTrue( queue.contains( three ) );
-			
-		} 
-	  
-	  /**
-	  * Test method for 
-	  * {@link implementations.MyQueue#contains(java.lang.Object)}
-	  * to return true when item is not found.
-	  */@Test
-		public void testContains_NotFound()
+			queue.contains( null );
+			fail( "Failed to throw NullPointerException." );
+		}
+		catch( NullPointerException e )
 		{
-		  	queue.enqueue( one );
-			queue.enqueue( two );
-			queue.enqueue( three );
-			
-			assertFalse( queue.contains( four ) );
-			assertFalse( queue.contains( five ) );
-			
-		} 
-	  
-	  /**
-	  * Test method for 
-	  * {@link implementations.MyQueue#contains(java.lang.Object)}
-	  * to throw NullPointerException when null is passed.
-	  */@Test
-		public void testContains_NullPointerException()
-		{
-		  	try
-		  	{
-		  		queue.contains( null );
-		  		fail("Failed to throw NullPointerException.");
-		  	}
-		  	catch(NullPointerException e)
-		  	{
-		  		assertTrue(true);
-		  	}
-		  	
-			assertFalse( queue.contains( five ) );
-			
-		} 
-	  
-	  /**
-	  * Test method for 
-	  * {@link implementations.MyQueue#search(java.lang.Object)}
-	  * to return the index of the item when the item exists.
-	  */@Test
-		public void testSearch_Found()
-		{
-		  	queue.enqueue( one );
-			queue.enqueue( two );
-			queue.enqueue( three );
-			
-			int expectedIndex = 1;
-			int actualIndex = queue.search( one ); 
-			
-			assertEquals("Failed to find item", expectedIndex, actualIndex );
-			
-			expectedIndex = 2;
-			actualIndex = queue.search( two ); 
-			assertEquals("Failed to find item", expectedIndex, actualIndex );
-			
-			expectedIndex = 3;
-			actualIndex = queue.search( three ); 
-			assertEquals("Failed to find item", expectedIndex, actualIndex );
-			
-		} 
-	  
-	  /**
-	  * Test method for 
-	  * {@link implementations.MyQueue#search(java.lang.Object)}
-	  * to return the index of the item when the item doesn't exist.
-	  */@Test
-		public void testSearch_NotFound()
-		{
-			int expectedIndex = -1;
-			int actualIndex = queue.search( one ); 
-			assertEquals("Failed to return -1 for not found", expectedIndex, actualIndex);
-			
-		  	queue.enqueue( one );
-			queue.enqueue( two );
-			queue.enqueue( three );
-			
-			actualIndex = queue.search( five ); 
-			
-			assertEquals("Failed to return -1 for not found", expectedIndex, actualIndex);
-		} 
- 
+			assertTrue( true );
+		}
+
+	}
+
+	/**
+	 * Test method for {@link implementations.MyQueue#search(java.lang.Object)} to
+	 * return the index of the item when the item exists.
+	 */
+	@Test
+	public void testSearch_Found()
+	{
+		queue.enqueue( one );
+		queue.enqueue( two );
+		queue.enqueue( three );
+
+		int expectedIndex = 1;
+		int actualIndex = queue.search( one );
+
+		assertEquals( "Failed to find item", expectedIndex, actualIndex );
+
+		expectedIndex = 2;
+		actualIndex = queue.search( two );
+		assertEquals( "Failed to find item", expectedIndex, actualIndex );
+
+		expectedIndex = 3;
+		actualIndex = queue.search( three );
+		assertEquals( "Failed to find item", expectedIndex, actualIndex );
+
+	}
+
+	/**
+	 * Test method for {@link implementations.MyQueue#search(java.lang.Object)} to
+	 * return the index of the item when the item doesn't exist.
+	 */
+	@Test
+	public void testSearch_NotFound()
+	{
+		int expectedIndex = -1;
+		int actualIndex = queue.search( one );
+		assertEquals( "Failed to return -1 for not found", expectedIndex, actualIndex );
+
+		queue.enqueue( one );
+		queue.enqueue( two );
+		queue.enqueue( three );
+
+		actualIndex = queue.search( five );
+
+		assertEquals( "Failed to return -1 for not found", expectedIndex, actualIndex );
+	}
+
 }
