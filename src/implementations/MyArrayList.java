@@ -172,6 +172,7 @@ public class MyArrayList<E> implements ListADT<E>, Serializable
 	}
 
 	@Override
+	@SuppressWarnings( "unchecked" )
 	public E[] toArray( E[] toHold ) throws NullPointerException
 	{
 		if( toHold == null )
