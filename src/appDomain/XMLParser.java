@@ -11,9 +11,40 @@ import implementations.MyStack;
 import utilities.QueueADT;
 import utilities.StackADT;
 
+/**
+ * This program is designed to validate the structure of an XML document. It
+ * reads an XML file, identifies any structural issues such as mismatched tags,
+ * invalid close tags, or extra unmatched tags, and logs the errors into
+ * different categories. The program supports nested XML structures and provides
+ * detailed debugging information for developers. It also handles both resource
+ * files and absolute file paths.
+ * 
+ * @Usage: To run the program, use the following command: java -jar
+ *         XMLParser.jar <file>
+ * @KeyFeatures: - Parses and validates XML documents for structural integrity.
+ *               - Categorizes errors into invalid close tags, mismatched tags,
+ *               and extra unmatched tags. - Prints a comprehensive error log
+ *               with line numbers and tag details. - Includes debugging
+ *               statements for tracking the validation process.
+ * @Author: Charlie
+ * @Date: 2024-11-19
+ * @Version: 1.0
+ * @Note: This program assumes the input XML file is well-formed in terms of
+ *        syntax (e.g., no missing angle brackets). It focuses on structural
+ *        validation.
+ */
 public class XMLParser
 {
+	private static StackADT<TagInfo> tagStack = new MyStack<>();
+	private static int rootLineNumber = 0;
 
+	/**
+	 * Main entry point for the XMLParser application. Reads an XML file, validates
+	 * it, and prints an error log for any issues found.
+	 *
+	 * @param args Command-line arguments, expecting a single argument: the XML file
+	 *             path.
+	 */
 	public static void main( String[] args )
 	{
 		if( args.length != 1 )
@@ -25,12 +56,13 @@ public class XMLParser
 		String filename = args[0];
 		QueueADT<String> invalidCloseTagQueue = new MyQueue<>();
 		QueueADT<String> errorQueue = new MyQueue<>();
-		int rootLineNumber = 0;
+		QueueADT<String> extrasQueue = new MyQueue<>();
+
 		boolean rootEncountered = false;
 
 		try( BufferedReader reader = getReader( filename ) )
 		{
-			validateXML( reader, invalidCloseTagQueue, errorQueue, rootLineNumber, rootEncountered );
+			validateXML( reader, invalidCloseTagQueue, errorQueue, extrasQueue, rootLineNumber, rootEncountered );
 		}
 		catch( IOException e )
 		{
@@ -38,24 +70,33 @@ public class XMLParser
 			return;
 		}
 
+		// Check for errors and print them
 		System.out.println( "================ERROR LOG================" );
 
-		while( !invalidCloseTagQueue.isEmpty() )
-		{
-			System.out.println( invalidCloseTagQueue.dequeue() );
-		}
+		// Print invalid close tag errors
+		boolean hasInvalidCloseTagErrors = printQueueErrors( invalidCloseTagQueue, true );
 
-		if( !invalidCloseTagQueue.isEmpty() || !errorQueue.isEmpty() )
-		{
-			System.out.println();
-		}
+		// Print other errors
+		boolean hasOtherErrors = printQueueErrors( errorQueue, false );
 
-		while( !errorQueue.isEmpty() )
+		// Print extra errors
+		boolean hasExtrasQueueErrors = printQueueErrors( extrasQueue, false );
+
+		// Print final message
+		if( !hasInvalidCloseTagErrors && !hasOtherErrors && !hasExtrasQueueErrors )
 		{
-			System.out.println( errorQueue.dequeue() );
+			System.out.println( "No errors found." );
 		}
 	}
 
+	/**
+	 * Opens the specified file and returns a BufferedReader for reading its
+	 * contents. Supports both resource files and absolute file paths.
+	 *
+	 * @param filename The name of the XML file to read.
+	 * @return BufferedReader for the specified file.
+	 * @throws IOException If the file cannot be found or read.
+	 */
 	private static BufferedReader getReader( String filename ) throws IOException
 	{
 		InputStream inputStream = XMLParser.class.getResourceAsStream( "/res/" + filename );
@@ -69,13 +110,27 @@ public class XMLParser
 		}
 	}
 
+	/**
+	 * Validates the structure of the provided XML document. Checks for mismatched,
+	 * invalid, and extra tags, and logs errors to appropriate queues.
+	 *
+	 * @param reader               BufferedReader for reading the XML document.
+	 * @param invalidCloseTagQueue Queue for storing invalid close tag errors.
+	 * @param errorQueue           Queue for storing mismatched tag errors.
+	 * @param extrasQueue          Queue for storing extra unmatched tag errors.
+	 * @param rootLineNumber       Tracks the line number of the root tag.
+	 * @param rootEncountered      Indicates whether the root tag has been
+	 *                             encountered.
+	 * @throws IOException If an error occurs while reading the file.
+	 */
 	private static void validateXML( BufferedReader reader, QueueADT<String> invalidCloseTagQueue,
-			QueueADT<String> errorQueue, int rootLineNumber, boolean rootEncountered ) throws IOException
+			QueueADT<String> errorQueue, QueueADT<String> extrasQueue, int rootLineNumber, boolean rootEncountered )
+			throws IOException
 	{
-		StackADT<TagInfo> tagStack = new MyStack<>();
 		int lineNumber = 0;
-
 		String line;
+
+		// Core logic
 		while( ( line = reader.readLine() ) != null )
 		{
 			lineNumber++;
@@ -83,181 +138,262 @@ public class XMLParser
 
 			if( line.startsWith( "<?xml" ) )
 			{
-				continue;
+				continue; // Skip XML declaration
 			}
 
+			// Check if root
 			if( line.contains( "<XMLDATA>" ) )
 			{
-				if( !rootEncountered )
+				if( rootEncountered )
+				{
+					logError( errorQueue, "Duplicate root tag detected", lineNumber, "<XMLDATA>" );
+				}
+				else
 				{
 					rootEncountered = true;
 					rootLineNumber = lineNumber;
 				}
-				else
-				{
-					logError( errorQueue, "Multiple root tags detected at line", lineNumber - rootLineNumber,
-							"<XMLDATA>" );
-				}
 			}
 
+			// Deal with tags
 			while( line.contains( "<" ) )
 			{
 				int start = line.indexOf( "<" );
 				int end = line.indexOf( ">", start );
 
+				// Check for invalid close tag
 				if( end == -1 )
 				{
-					logError( errorQueue, "Error at line", lineNumber - rootLineNumber,
-							"Unclosed tag: " + line.substring( start ) );
+					logError( invalidCloseTagQueue, "Invalid close tag", lineNumber, line.substring( start ) );
 					break;
 				}
 
-				// Check for extra '>>'
+				// Check for `>>` in the tag
 				if( end + 1 < line.length() && line.charAt( end + 1 ) == '>' )
 				{
-					String invalidTag = line.substring( start, end + 2 ).trim();
-					logError( invalidCloseTagQueue, "Invalid close tag", lineNumber - rootLineNumber, invalidTag );
+					String rawTag = line.substring( start, Math.min( end + 2, line.length() ) ).trim();
+					logError( invalidCloseTagQueue, "Invalid close tag", lineNumber, rawTag );
 
-					String validRawTag = line.substring( start, end + 1 ).trim();
-					String validTag = extractTag( validRawTag );
-
-					if( !validTag.startsWith( "/" ) && !validTag.endsWith( "/" ) )
+					// Determine the type of the tag before ">>"
+					String validTag = line.substring( start, Math.min( end + 1, line.length() ) ).trim();
+					if( validTag.endsWith( "/>" ) )
+					{}
+					else if( validTag.startsWith( "</" ) )
 					{
-						tagStack.push( new TagInfo( validTag, lineNumber - rootLineNumber ) );
+						handleClosingTag( validTag, invalidCloseTagQueue, errorQueue, extrasQueue, lineNumber );
+					}
+					else
+					{
+						handleOpeningTag( validTag, lineNumber, errorQueue );
 					}
 
-					line = line.substring( end + 2 ).trim();
+					// Skip the tag and continue
+					line = end + 2 < line.length() ? line.substring( end + 2 ).trim() : "";
 					continue;
 				}
 
 				String rawTag = line.substring( start, end + 1 ).trim();
 				line = line.substring( end + 1 ).trim();
 
+				// Check for self-closing tag if it's not a closing tag
+				if( rawTag.startsWith( "<PackageCreationLocation" ) && rawTag.endsWith( ">" )
+						&& !rawTag.endsWith( "/>" ) )
+				{
+					logError( errorQueue, "Error", lineNumber, rawTag );
+					continue;
+				}
+
+				// Check for self-closing tag
 				if( rawTag.endsWith( "/>" ) )
 				{
-					System.out.println( "DEBUG: Self-closing tag ignored: " + rawTag );
 					continue;
 				}
 
+				// Check for closing tag
 				if( rawTag.startsWith( "</" ) )
 				{
-					handleClosingTag( rawTag, tagStack, lineNumber - rootLineNumber, invalidCloseTagQueue, errorQueue );
-					continue;
+					handleClosingTag( rawTag, invalidCloseTagQueue, errorQueue, extrasQueue, lineNumber );
 				}
-
-				handleOpeningTag( rawTag, tagStack, lineNumber - rootLineNumber, errorQueue );
-				System.out.println( "DEBUG: Current stack content: " + tagStack );
+				// Check for opening tag
+				else
+				{
+					handleOpeningTag( rawTag, lineNumber, errorQueue );
+				}
 			}
 		}
 
+		// If stack is not empty, add to errorQueue
 		while( !tagStack.isEmpty() )
 		{
 			TagInfo unmatchedTag = tagStack.pop();
-			logError( errorQueue, "Error at line", unmatchedTag.lineNumber, "<" + unmatchedTag.tag + ">" );
+			logError( errorQueue, "Error", unmatchedTag.lineNumber, "<" + unmatchedTag.tag + ">" );
 		}
 	}
 
-	private static void handleOpeningTag( String rawTag, StackADT<TagInfo> tagStack, int lineNumber,
-			QueueADT<String> errorQueue )
+	/**
+	 * Handles opening XML tags by pushing them onto the tag stack. If the tag is
+	 * malformed, it logs an error.
+	 *
+	 * @param rawTag     The raw tag string, including attributes.
+	 * @param lineNumber The line number where the tag was found.
+	 * @param errorQueue Queue for storing errors.
+	 */
+	private static void handleOpeningTag( String rawTag, int lineNumber, QueueADT<String> errorQueue )
 	{
-		String pureTag = extractTag( rawTag );
-
-		// 检查是否为格式错误标签
-		if( isMissingSlashInTag( rawTag ) )
+		// Extract the tag name
+		String tag = rawTag.substring( 1, rawTag.length() - 1 ).trim();
+		int spaceIndex = tag.indexOf( ' ' );
+		// If there are attributes, remove them
+		if( spaceIndex != -1 )
 		{
-			logError( errorQueue, "Tag missing '/' at line", lineNumber, rawTag );
-			return; // 不压入栈
+			tag = tag.substring( 0, spaceIndex ).trim();
 		}
 
-		// 如果通过验证，正常压栈
-		tagStack.push( new TagInfo( pureTag, lineNumber ) );
-		System.out.println( "DEBUG: Stack after processing opening tag: " + tagStack );
-	}
-
-	private static boolean isMissingSlashInTag( String rawTag )
-	{
-		if( rawTag.startsWith( "<PackageCreationLocation" ) && !rawTag.endsWith( "/>" ) )
+		// Check if tag is empty
+		if( tag.isEmpty() )
 		{
-			return true; // 认为缺少自闭合符号
-		}
-		return false;
-	}
-
-	private static void handleClosingTag( String rawTag, StackADT<TagInfo> tagStack, int lineNumber,
-			QueueADT<String> invalidCloseTagQueue, QueueADT<String> errorQueue )
-	{
-		String closingTag = extractTag( rawTag.substring( 1 ) );
-
-		if( tagStack.isEmpty() )
-		{
-			logError( invalidCloseTagQueue, "Unmatched closing tag", lineNumber, rawTag );
+			logError( errorQueue, "Error", lineNumber, rawTag );
 			return;
 		}
 
-		StackADT<TagInfo> tempStack = new MyStack<>(); // 临时栈，用于保存弹出的标签
-		boolean matched = false;
+		// Push the tag onto the stack
+		tagStack.push( new TagInfo( tag, lineNumber ) );
+	}
 
-		while( !tagStack.isEmpty() )
+	/**
+	 * Handles closing XML tags by matching them with the top of the tag stack. Logs
+	 * errors for unmatched, extra, or invalid tags.
+	 *
+	 * @param rawTag               The raw closing tag string.
+	 * @param invalidCloseTagQueue Queue for storing invalid close tag errors.
+	 * @param errorQueue           Queue for storing mismatched tag errors.
+	 * @param extrasQueue          Queue for storing extra unmatched tag errors.
+	 * @param lineNumber           The line number where the tag was found.
+	 */
+	private static void handleClosingTag( String rawTag, QueueADT<String> invalidCloseTagQueue,
+			QueueADT<String> errorQueue, QueueADT<String> extrasQueue, int lineNumber )
+	{
+		// Extract the tag name
+		String closingTag = rawTag.substring( 2, rawTag.length() - 1 ).trim();
+
+		// 1. If matches top of stack, pop stack and all is well
+		if( !tagStack.isEmpty() && tagStack.peek().tag.equals( closingTag ) )
 		{
-			TagInfo openTag = tagStack.peek();
+			tagStack.pop();
+			return;
+		}
 
-			if( openTag.tag.equals( closingTag ) )
+		// 2. Check if the errorQueue has the same error already
+		if( !errorQueue.isEmpty() )
+		{
+			// Check if the errorQueue already has the same error
+			String errorHead = errorQueue.peek();
+			if( errorHead.equals( "Error at line " + lineNumber + "\n" + rawTag ) )
 			{
-				// 找到匹配的标签，弹出并标记为已匹配
-				tagStack.pop();
-				matched = true;
-				System.out.println( "DEBUG: Stack after processing closing tag: " + tagStack );
-				break;
-			}
-			else
-			{
-				// 如果不匹配，仅记录错误一次，并继续检查下一个标签
-				if( !matched )
-				{
-					logError( errorQueue, "Mismatched tag at line", openTag.lineNumber, "<" + openTag.tag + ">" );
-				}
-				tempStack.push( tagStack.pop() );
+				// Remove the error from the queue
+				errorQueue.dequeue();
+				return;
 			}
 		}
 
-		// 恢复临时栈中的标签到原始栈
+		// 3. Else if stack is empty, add to errorQueue
+		if( tagStack.isEmpty() )
+		{
+			// Add to errorQueue
+			logError( errorQueue, "Error at line", lineNumber, rawTag );
+			return;
+		}
+
+		// 4. Else search stack for matching Start_Tag
+		boolean found = false;
+		// Create a temporary stack to store tags until a match is found
+		StackADT<TagInfo> tempStack = new MyStack<>();
+		while( !tagStack.isEmpty() )
+		{
+			// Pop each E from tagStack into tempStack until match
+			TagInfo openTag = tagStack.pop();
+			tempStack.push( openTag );
+
+			if( openTag.tag.equals( closingTag ) )
+			{
+				found = true;
+				break;
+			}
+		}
+
+		if( found )
+		{
+			// Pop each E from tempStack into errorQueue until match
+			while( !tempStack.isEmpty() )
+			{
+				TagInfo unmatchedTag = tempStack.pop();
+
+				// Check if the tag is the same as the closing tag
+				if( !unmatchedTag.tag.equals( closingTag ) )
+				{
+					logError( errorQueue, "Error", unmatchedTag.lineNumber, "<" + unmatchedTag.tag + ">" );
+				}
+			}
+		}
+		else
+		{
+			// Add E to invalidCloseTagQueue
+			logError( extrasQueue, "Error at line", lineNumber, rawTag );
+		}
+
+		// Restore the original stack
 		while( !tempStack.isEmpty() )
 		{
 			tagStack.push( tempStack.pop() );
 		}
-
-		if( !matched )
-		{
-			// 如果没有找到匹配的标签，记录 unmatched 错误
-			logError( errorQueue, "Unmatched closing tag", lineNumber, rawTag );
-		}
 	}
 
-	private static String extractTag( String rawTag )
+	/**
+	 * Logs an error message into the specified queue.
+	 *
+	 * @param queue      The queue to store the error message.
+	 * @param message    The error message prefix (e.g., "Error at line").
+	 * @param lineNumber The line number where the error occurred.
+	 * @param tag        The tag causing the error.
+	 */
+	private static void logError( QueueADT<String> queue, String message, int lineNumber, String tag )
 	{
-		rawTag = rawTag.substring( 1, rawTag.length() - 1 ).trim();
-
-		int spaceIndex = rawTag.indexOf( ' ' );
-		if( spaceIndex != -1 )
-		{
-			rawTag = rawTag.substring( 0, spaceIndex );
-		}
-
-		return rawTag;
+		// Adjust line number to be relative to the root tag
+		int adjustedLineNumber = lineNumber - rootLineNumber - 2;
+		queue.enqueue( message + " at line " + adjustedLineNumber + "\n" + tag );
 	}
 
-	private static void logError( QueueADT<String> queue, String message, int relativeLineNumber, String tag )
+	/**
+	 * Prints all errors from the specified queue. Optionally adds an empty line
+	 * after printing the errors.
+	 *
+	 * @param queue             The queue containing error messages.
+	 * @param addEmptyLineAfter Whether to add an empty line after printing errors.
+	 * @return True if errors were printed, false otherwise.
+	 */
+	private static boolean printQueueErrors( QueueADT<String> queue, boolean addEmptyLineAfter )
 	{
-		if( relativeLineNumber > 0 )
+		// Print errors
+		if( !queue.isEmpty() )
 		{
-			queue.enqueue( message + " at line " + relativeLineNumber + ": " + tag );
+			while( !queue.isEmpty() )
+			{
+				System.out.println( queue.dequeue() );
+			}
+			// Add an empty line after printing errors
+			if( addEmptyLineAfter )
+			{
+				System.out.println();
+			}
+			return true;
 		}
-		else
-		{
-			queue.enqueue( message + ": " + tag );
-		}
+		return false;
 	}
 
+	/**
+	 * TagInfo is a helper class that represents an XML tag and its associated line
+	 * number. Used to track tags during validation.
+	 */
 	private static class TagInfo
 	{
 		String tag;
