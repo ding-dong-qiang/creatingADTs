@@ -26,7 +26,7 @@ import utilities.StackADT;
  *               and extra unmatched tags. - Prints a comprehensive error log
  *               with line numbers and tag details. - Includes debugging
  *               statements for tracking the validation process.
- * @Author: Charlie
+ * @Author: Team Sidon
  * @Date: 2024-11-19
  * @Version: 1.0
  * @Note: This program assumes the input XML file is well-formed in terms of
