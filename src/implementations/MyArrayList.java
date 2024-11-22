@@ -220,21 +220,26 @@ public class MyArrayList<E> implements ListADT<E> {
 
 	@Override
 	public E[] toArray(E[] toHold) throws NullPointerException {
-		// TODO Auto-generated method stub
-		if (toHold == null) {
+	    if (toHold == null) {
 	        throw new NullPointerException("The provided array cannot be null.");
 	    }
-	    
+
 	    if (toHold.length < size) {
-	        
-	        return Arrays.copyOf(elements, size);
+	        @SuppressWarnings("unchecked")
+	        E[] newArray = (E[]) java.lang.reflect.Array.newInstance(toHold.getClass().getComponentType(), size);
+	        System.arraycopy(elements, 0, newArray, 0, size);
+	        return newArray;
 	    }
-	    
-	    
+
 	    System.arraycopy(elements, 0, toHold, 0, size);
-	    
+
+	    if (toHold.length > size) {
+	        toHold[size] = null;
+	    }
+
 	    return toHold;
 	}
+
 
 	@Override
 	public Object[] toArray() {
