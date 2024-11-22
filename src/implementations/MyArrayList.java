@@ -19,7 +19,7 @@ public class MyArrayList<E> implements ListADT<E> {
 	 * 
 	 */
 	private E[] elements;
-    private int size;
+    int size;
     private static final int DEFAULT_SIZE = 10;
     
     private class MyArrayListIterator implements Iterator<E> {
@@ -220,23 +220,18 @@ public class MyArrayList<E> implements ListADT<E> {
 
 	@Override
 	public E[] toArray(E[] toHold) throws NullPointerException {
-	    if (toHold == null) {
+		if (toHold == null) {
 	        throw new NullPointerException("The provided array cannot be null.");
 	    }
 
 	    if (toHold.length < size) {
+	        // 创建一个新的数组，并将 `elements` 拷贝到这个数组中
 	        @SuppressWarnings("unchecked")
-	        E[] newArray = (E[]) java.lang.reflect.Array.newInstance(toHold.getClass().getComponentType(), size);
-	        System.arraycopy(elements, 0, newArray, 0, size);
+	        E[] newArray = (E[]) Arrays.copyOf(elements, size, toHold.getClass());
 	        return newArray;
 	    }
 
 	    System.arraycopy(elements, 0, toHold, 0, size);
-
-	    if (toHold.length > size) {
-	        toHold[size] = null;
-	    }
-
 	    return toHold;
 	}
 
@@ -245,10 +240,10 @@ public class MyArrayList<E> implements ListADT<E> {
 	public Object[] toArray() {
 		// TODO Auto-generated method stub
 		Object[] result = new Object[size];
-   
-	    System.arraycopy(elements, 0, result, 0, size);
 
-	    return result;
+		System.arraycopy(elements, 0, result, 0, size);
+
+		return result;
 	}
 
 	@Override
