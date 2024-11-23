@@ -212,11 +212,16 @@ public class MyArrayList<E> implements ListADT<E> {
 		}
 
 		if (toHold.length < size) {
-
-			return Arrays.copyOf(toHold, size);
+			@SuppressWarnings("unchecked")
+			E[] newArray = Arrays.copyOf(toHold, size);
+			System.arraycopy(elements, 0, newArray, 0, size);
+			return newArray;
 		}
 
 		System.arraycopy(elements, 0, toHold, 0, size);
+		if (toHold.length > size) {
+			toHold[size] = null;
+		}
 
 		return toHold;
 	}

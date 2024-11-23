@@ -3,8 +3,8 @@ package implementations;
 import utilities.StackADT;
 import utilities.Iterator;
 
-import java.util.Arrays;
 import java.util.EmptyStackException;
+import java.util.NoSuchElementException;
 
 /**
  * @param <E>
@@ -24,7 +24,7 @@ public class MyStack<E> implements StackADT<E> {
         if (toAdd == null) {
             throw new NullPointerException("Null elements can't be added into the stack.");
         }
-        list.add(0, toAdd);
+        list.add(toAdd);
     }
 
     @Override
@@ -32,7 +32,7 @@ public class MyStack<E> implements StackADT<E> {
         if (isEmpty()) {
             throw new EmptyStackException();
         }
-        return list.remove(0);
+        return list.remove(list.size() - 1);
     }
 
     @Override
@@ -40,7 +40,7 @@ public class MyStack<E> implements StackADT<E> {
         if (isEmpty()) {
             throw new EmptyStackException();
         }
-        return list.get(0);
+        return list.get(list.size() - 1);
     }
 
     @Override
@@ -55,28 +55,30 @@ public class MyStack<E> implements StackADT<E> {
 
     @Override
     public Object[] toArray() {
-        return list.toArray();
+        Object[] array = list.toArray();
+
+        for (int i = 0; i < array.length / 2; i++) {
+            Object temp = array[i];
+            array[i] = array[array.length - 1 - i];
+            array[array.length - 1 - i] = temp;
+        }
+        return array;
     }
 
     @Override
     public E[] toArray(E[] toHold) throws NullPointerException {
         if (toHold == null) {
-            throw new NullPointerException("The provided arraylist cannot be null.");
+            throw new NullPointerException("The provided array cannot be null.");
         }
 
-        if (toHold.length < size()) {
-            toHold = Arrays.copyOf(toHold, size());
-        }
+        E[] array = list.toArray(toHold);
 
-        for (int i = 0; i < size(); i++) {
-            toHold[i] = list.get(i);
+        for (int i = 0; i < array.length / 2; i++) {
+            E temp = array[i];
+            array[i] = array[array.length - 1 - i];
+            array[array.length - 1 - i] = temp;
         }
-
-        if (toHold.length > size()) {
-            toHold[size()] = null;
-        }
-
-        return toHold;
+        return array;
     }
 
     @Override
@@ -103,7 +105,22 @@ public class MyStack<E> implements StackADT<E> {
 
     @Override
     public Iterator<E> iterator() {
-        return list.iterator();
+        return new Iterator<E>() {
+            private int currentIndex = list.size() - 1;
+
+            @Override
+            public boolean hasNext() {
+                return currentIndex >= 0;
+            }
+
+            @Override
+            public E next() throws NoSuchElementException {
+                if (!hasNext()) {
+                    throw new NoSuchElementException();
+                }
+                return list.get(currentIndex--);
+            }
+        };
     }
 
     @Override
